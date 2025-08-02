@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: projeto-carros
+    env: php
+    plan: free
+    buildCommand: composer install --no-interaction --prefer-dist --optimize-autoloader && php artisan migrate --force
+    startCommand: php artisan serve --host=0.0.0.0 --port=10000
+    envVars:
+      - key: APP_KEY
+        value: base64:7S2gZVkKj+7UY0GQv7EIvD6LdPQmJ2Y+abxN3e6MLBo=
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: metro.proxy.rlwy.net
+      - key: DB_PORT
+        value: "10896"
+      - key: DB_DATABASE
+        value: railway
+      - key: DB_USERNAME
+        value: postgres
+      - key: DB_PASSWORD
+        value: sua_senha_aqui
