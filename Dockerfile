@@ -1,38 +1,29 @@
-# Usar a imagem oficial do PHP com Apache e extensões necessárias
-FROM php:8.2-apache
+# Imagem PHP oficial com Apache (pode usar só PHP CLI, mas aqui vamos simplificar)
+FROM php:8.2-cli
 
-# Instalar dependências do sistema, PHP extensions e Composer
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    git \
+# Instalar dependências do sistema e PHP para PostgreSQL
+RUN apt-get update && apt-get install -y libpq-dev zip unzip git \
     && docker-php-ext-install pdo_pgsql zip
 
-# Ativar mod_rewrite do Apache
-RUN a2enmod rewrite
-
-# Instalar Composer globalmente
+# Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copiar o código para dentro do container
-COPY . /var/www/html
+# Copiar código
+WORKDIR /app
+COPY . /app
 
-# Definir diretório de trabalho
-WORKDIR /var/www/html
-
-# Instalar dependências PHP via Composer
+# Instalar dependências do Laravel
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Ajustar permissões
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Ajustar permissões para storage e cache
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Expor porta padrão do Apache
-EXPOSE 80
+# Copiar o script de start
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-# Rodar migrations aqui é opcional — melhor rodar manualmente depois
-# RUN php artisan migrate --force
+# Expor a porta padrão para Laravel serve (não obrigatório mas recomendado)
+EXPOSE 8000
 
-# Start Apache em foreground
-CMD ["apache2-foreground"]
+# Rodar o script start.sh que inicia o Laravel na porta correta
+CMD ["/start.sh"]
